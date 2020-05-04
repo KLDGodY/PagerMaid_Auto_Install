@@ -73,7 +73,7 @@ screen -x -S userbot -p 0 -X stuff $'\n'
 cd /etc/systemd/system/
 wget https://pastebin.com/raw/jcWjFDT6
 mv ./jcWjFDT6 ./pagermaid.service
-sudo systemctl daemon-reload
-sudo systemctl start pagermaid
+systemctl daemon-reload
+systemctl start pagermaid
 
 screen -r userbot
