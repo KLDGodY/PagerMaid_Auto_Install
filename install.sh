@@ -66,7 +66,7 @@ sleep 10
 
 cd /var/lib
 
-screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3 -m pagermaid"
+screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
 
 screen -x -S userbot -p 0 -X stuff $'\n'
 
