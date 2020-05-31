@@ -8,6 +8,7 @@ update_and_install(){
 	apt-get install software-properties-common -y
 	add-apt-repository ppa:dawidd0811/neofetch
 	apt-get install neofetch -y
+        apt install tesseract-ocr-all -y
 	apt-get install libzbar-dev -y
 	
 	apt install tesseract-ocr -y
