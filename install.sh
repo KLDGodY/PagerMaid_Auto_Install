@@ -49,27 +49,39 @@ update_and_install(){
 
 update_and_install
 
-cd /var/lib
 git clone https://github.com/xtaodada/PagerMaid-Modify.git
 cd PagerMaid-Modify
 
 pip3 install -r requirements.txt
 mv config.gen.yml config.yml
 
-read -p "请输入您的API_KEY: " api_key
+read -p "请输入您的 API_KEY: " api_key
 sed -i "s/ID_HERE/$api_key/g" /var/lib/PagerMaid-Modify/config.yml
-read -p "请输入您的API_HASH: " api_hash
+read -p "请输入您的 API_HASH: " api_hash
 sed -i "s/HASH_HERE/$api_hash/g" /var/lib/PagerMaid-Modify/config.yml
 screen -dmS userbot
-
-echo "请在接下来的窗口登录您的 Telegram 账号，登录完成后 按 Ctrl + A + D 退出Screen后台运行 10 秒后安装程序继续..."
-sleep 10
-
-cd /var/lib
 
 screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
 
 screen -x -S userbot -p 0 -X stuff $'\n'
+
+read -p "请输入您的 Telegram 手机号码: " phonenum
+
+screen -x -S userbot -p 0 -X stuff "$phonenum"
+screen -x -S userbot -p 0 -X stuff $'\n'
+
+read -p "请输入您的登录验证码: " checknum
+
+screen -x -S userbot -p 0 -X stuff "$checknum"
+screen -x -S userbot -p 0 -X stuff $'\n'
+
+read -p "您是否有二次登录验证码(y或n): " choi
+
+if [ "$choi" == "y" ]; then
+	read -p "请输入您的二次登录验证码: " twotimepwd
+	screen -x -S userbot -p 0 -X stuff "$twotimepwd"
+	screen -x -S userbot -p 0 -X stuff $'\n'
+fi
 
 cd /etc/systemd/system/
 wget https://pastebin.com/raw/jcWjFDT6
@@ -77,4 +89,4 @@ mv ./jcWjFDT6 ./pagermaid.service
 systemctl daemon-reload
 systemctl start pagermaid
 
-screen -r userbot
+echo "PagerMaid 已经安装完毕 在对话框中输入 -help 并发送查看帮助列表"
