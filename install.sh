@@ -38,6 +38,7 @@ update_and_install(){
 	pip3 install zbar
 	pip3 install --upgrade pip
 	sudo -H pip3 install --ignore-installed PyYAML
+	sudo -H pip3 install sentry-sdk==0.16.0
 	apt-get install screen -y
 	
 	if command -v git;then
