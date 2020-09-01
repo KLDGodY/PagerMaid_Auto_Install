@@ -71,6 +71,8 @@ screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m
 
 screen -x -S userbot -p 0 -X stuff $'\n'
 
+clear
+
 read -p "请输入您的 Telegram 手机号码: " phonenum
 
 screen -x -S userbot -p 0 -X stuff "$phonenum"
