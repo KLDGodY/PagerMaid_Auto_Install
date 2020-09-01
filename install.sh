@@ -11,8 +11,6 @@ if [ "$startr" = "2" ] || [ "$startr" != 1 ]; then
 	exit 1
 fi
 
-cd /var/lib
-
 apt-get update -y
 apt-get upgrade -y
 apt-get install sudo -y
@@ -35,6 +33,9 @@ else
 	./configure --enable-optimizations
 	make && make altinstall
 	python3 -V
+	cd ../
+	rm -rf Python-3.6.5.tgz
+	
 fi
 if command -v pip3;
 then
@@ -55,6 +56,7 @@ else
 	apt-get install git -y
 fi
 
+cd /var/lib
 git clone https://github.com/xtaodada/PagerMaid-Modify.git
 cd PagerMaid-Modify
 
