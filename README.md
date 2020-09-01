@@ -1,4 +1,4 @@
-# 运行
+# 运行 （Ubuntu 18.04）
 ``
-bash <(curl -sSL https://raw.githubusercontent.com/KLDGodY/PagerMaid_Auto_Install/master/install.sh)
+apt install curl -y && bash <(curl -sSL https://raw.githubusercontent.com/KLDGodY/PagerMaid_Auto_Install/master/install.sh)
 ``
