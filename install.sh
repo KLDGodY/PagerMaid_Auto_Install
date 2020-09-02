@@ -16,7 +16,7 @@ apt-get upgrade -y
 apt-get install sudo -y
 apt-get install imagemagick -y
 apt-get install software-properties-common -y
-add-apt-repository ppa:dawidd0811/neofetch
+add-apt-repository ppa:dawidd0811/neofetch -y
 apt-get install neofetch -y
 apt install tesseract-ocr-all -y
 apt-get install libzbar-dev -y
