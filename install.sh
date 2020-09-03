@@ -63,6 +63,8 @@ cd PagerMaid-Modify
 pip3 install -r requirements.txt
 mv config.gen.yml config.yml
 
+clear
+
 read -p "请输入您的 API_KEY: " api_key
 sed -i "s/ID_HERE/$api_key/g" /var/lib/PagerMaid-Modify/config.yml
 read -p "请输入您的 API_HASH: " api_hash
@@ -99,4 +101,4 @@ mv ./jcWjFDT6 ./pagermaid.service
 systemctl daemon-reload
 systemctl start pagermaid
 
-echo "PagerMaid 已经安装完毕 在对话框中输入 -help 并发送查看帮助列表"
+echo "PagerMaid 已经安装完毕 在 Telegram 对话框中输入 -help 并发送查看帮助列表"
