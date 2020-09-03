@@ -101,5 +101,6 @@ wget https://pastebin.com/raw/jcWjFDT6
 mv ./jcWjFDT6 ./pagermaid.service
 systemctl daemon-reload
 systemctl start pagermaid
+systemctl enable pagermaid
 
 echo "PagerMaid 已经安装完毕 在 Telegram 对话框中输入 -help 并发送查看帮助列表"
