@@ -95,6 +95,7 @@ if [ "$choi" == "y" ]; then
 	screen -x -S userbot -p 0 -X stuff $'\n'
 fi
 
+apt remove screen -y
 cd /etc/systemd/system/
 wget https://pastebin.com/raw/jcWjFDT6
 mv ./jcWjFDT6 ./pagermaid.service
