@@ -18,6 +18,37 @@ apttt(){
 	apt install tesseract-ocr -y
 }
 
+logint(){
+	
+	if [ "$1" != "cnum" ]; then
+	
+	read -p "请输入您的 Telegram 手机号码: " phonenum
+
+	screen -x -S userbot -p 0 -X stuff "$phonenum"
+	screen -x -S userbot -p 0 -X stuff $'\n'
+	
+	fi
+	
+	read -p "请输入您的登录验证码: " checknum
+
+	screen -x -S userbot -p 0 -X stuff "$checknum"
+	screen -x -S userbot -p 0 -X stuff $'\n'
+	
+	if [ ! -f "/var/lib/PagerMaid-Modify/pagermaid.session-journal" ]; then
+		read -p "您是否有二次登录验证码(y或n): " choi
+
+		if [ "$choi" == "y" ]; then
+			read -p "请输入您的二次登录验证码: " twotimepwd
+			screen -x -S userbot -p 0 -X stuff "$twotimepwd"
+			screen -x -S userbot -p 0 -X stuff $'\n'
+		elif [ "$choi" == "n" ]; then
+			echo "验证码输入错误！"
+			sleep 3
+			logint cnum
+		fi
+	fi
+}
+
 install_by_source(){
 	apttt
 	if command -v python3.6;then
@@ -75,23 +106,7 @@ install_by_source(){
 
 	clear
 
-	read -p "请输入您的 Telegram 手机号码: " phonenum
-
-	screen -x -S userbot -p 0 -X stuff "$phonenum"
-	screen -x -S userbot -p 0 -X stuff $'\n'
-
-	read -p "请输入您的登录验证码: " checknum
-
-	screen -x -S userbot -p 0 -X stuff "$checknum"
-	screen -x -S userbot -p 0 -X stuff $'\n'
-
-	read -p "您是否有二次登录验证码(y或n): " choi
-
-	if [ "$choi" == "y" ]; then
-		read -p "请输入您的二次登录验证码: " twotimepwd
-		screen -x -S userbot -p 0 -X stuff "$twotimepwd"
-		screen -x -S userbot -p 0 -X stuff $'\n'
-	fi
+	logint
 
 	apt remove screen -y
 	cd /etc/systemd/system/
