@@ -35,7 +35,7 @@ logint(){
 	screen -x -S userbot -p 0 -X stuff $'\n'
 	
 	if [ ! -f "/var/lib/PagerMaid-Modify/pagermaid.session-journal" ]; then
-		read -p "您是否有二次登录验证码(y或n): " choi
+		read -p "您是否有二次登录验证码(y或n & 不知道二次登录验证码是什么请回车): " choi
 
 		if [ "$choi" == "y" ]; then
 			read -p "请输入您的二次登录验证码: " twotimepwd
