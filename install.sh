@@ -1,3 +1,5 @@
+#!/bin/bash
+
 [[ $(id -u) != 0 ]] && echo -e "哎呀......请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}\n" && exit 1
 clear
 
