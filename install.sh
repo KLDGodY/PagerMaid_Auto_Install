@@ -41,7 +41,7 @@ logint(){
 			read -p "请输入您的二次登录验证码: " twotimepwd
 			screen -x -S userbot -p 0 -X stuff "$twotimepwd"
 			screen -x -S userbot -p 0 -X stuff $'\n'
-		elif [ "$choi" == "n" ]; then
+		elif [ "$choi" == "n" ] || [ "$choi" == "" ]; then
 			echo "验证码输入错误！"
 			sleep 3
 			logint cnum
