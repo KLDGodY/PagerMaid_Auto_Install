@@ -31,7 +31,21 @@ apttt(){
 
 logint(){
 	
-	if [ "$1" != "cnum" ]; then
+	if [ "$1" != "cnum" ] && [ "$1" != "fix" ]; then
+	
+	read -p "请输入您的 Telegram 手机号码: " phonenum
+
+	screen -x -S userbot -p 0 -X stuff "$phonenum"
+	screen -x -S userbot -p 0 -X stuff $'\n'
+	
+	elif [ "$1" == "fix" ]; then
+	
+	apt-get install screen -y 
+	screen -dmS userbot
+
+	screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
+
+	screen -x -S userbot -p 0 -X stuff $'\n'
 	
 	read -p "请输入您的 Telegram 手机号码: " phonenum
 
@@ -88,6 +102,7 @@ install_by_source(){
 	pip3 install --upgrade pip
 	sudo -H pip3 install --ignore-installed PyYAML
 	sudo -H pip3 install sentry-sdk==0.16.0
+	apt-get remove screen -y
 	apt-get install screen -y
 
 	if command -v git;then
@@ -150,7 +165,8 @@ install_by_docker(){
 echo "------PagerMaid Auto Install------"
 echo "1. 通过源代码安装 PagerMaid"
 echo "2. 通过 Docker 安装 PagerMaid (配置低的机器不推荐)"
-echo "3. 结束"
+echo "3. 修复 PagerMaid (通过源代码安装)"
+echo "4. 结束"
 echo "----------------------------------"
 echo 
 read startr
@@ -162,6 +178,86 @@ case $startr in
   install_by_docker
   ;;
   3)
+	if [ ! -f "/etc/systemd/system/pagermaid.service" ]; then
+		systemctl stop pagermaid
+		rm -rf /etc/systemd/system/pagermaid.service
+		systemctl daemon-reload
+		cd /etc/systemd/system/
+		wget https://pastebin.com/raw/jcWjFDT6
+		mv ./jcWjFDT6 ./pagermaid.service
+		systemctl daemon-reload
+		systemctl start pagermaid
+		systemctl enable pagermaid
+	else
+		cd /etc/systemd/system/
+		wget https://pastebin.com/raw/jcWjFDT6
+		mv ./jcWjFDT6 ./pagermaid.service
+		systemctl daemon-reload
+		systemctl start pagermaid
+		systemctl enable pagermaid
+	fi
+	
+	read -p "问题是否解决？(y或n)" se1
+	
+	if [ "$se1" == "y" ]; then
+		exit
+	elif [ "$se1" == "n" ];then
+		rm -rf /var/lib/PagerMaid-Modify/pagermaid.session
+		rm -rf /var/lib/PagerMaid-Modify/pagermaid.session-journal
+		systemctl stop pagermaid
+		logint fix
+		apt-get remove screen -y
+		systemctl start pagermaid
+	else
+		echo "¿"
+		exit
+	fi
+	
+	read -p "问题是否解决？(y或n)" se2
+	if [ "$se2" == "y" ]; then
+		exit
+	elif [ "$se2" == "n" ];then
+		apttt
+		pip3 install email_validator
+		pip3 install zbar
+		pip3 install --upgrade pip
+		sudo -H pip3 install --ignore-installed PyYAML
+		sudo -H pip3 install sentry-sdk==0.16.0
+	else
+		echo "¿"
+		exit
+	fi
+	
+	read -p "问题是否解决？(y或n)" se3
+	if [ "$se3" == "y" ]; then
+		exit
+	elif [ "$se3" == "n" ];then
+		echo "正在尝试重新安装 PagerMaid"
+		mv -r /var/lib/PagerMaid-Modify/plugins /root
+		systemctl stop pagermaid
+		rm -rf /etc/systemd/system/pagermaid.service
+		systemctl daemon-reload
+		rm -rf /var/lib/PagerMaid-Modify
+		install_by_source
+		mv -r /root/plugins /var/lib/PagerMaid-Modify
+		systemctl restart pagermaid
+	else
+		echo "¿"
+		exit
+	fi
+	
+	read -p "问题是否解决？(y或n)" se4
+	if [ "$se4" == "y" ]; then
+		exit
+	elif [ "$se4" == "n" ];then
+		echo "换台机器吧... 我实在想不出怎么修复了..."
+	else
+		echo "¿"
+		exit
+	fi
+	
+  ;;
+  4)
   exit
   ;;
   *)
