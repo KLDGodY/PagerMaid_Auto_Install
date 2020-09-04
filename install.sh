@@ -1,7 +1,18 @@
 #!/bin/bash
 
-[[ $(id -u) != 0 ]] && echo -e "哎呀......请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}\n" && exit 1
 clear
+if [[ -f /etc/redhat-release ]]; then
+  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+elif cat /etc/issue | grep -q -E -i "debian"; then
+  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
+  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+elif cat /proc/version | grep -q -E -i "debian"; then
+  echo "淦 暂时不支持 Debian 系统（" && exit 1
+elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
+  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+fi
+[[ $(id -u) != 0 ]] && echo -e "哎呀......请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}\n" && exit 1
 
 apttt(){
 	apt-get update -y
