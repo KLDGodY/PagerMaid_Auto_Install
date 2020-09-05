@@ -89,6 +89,7 @@ install_by_source(){
 		python3 -V
 		cd ../
 		rm -rf Python-3.6.5.tgz
+		rm -rf Python-3.6.5.tar
 		
 	fi
 	if command -v pip3;
@@ -101,7 +102,6 @@ install_by_source(){
 	pip3 install zbar
 	pip3 install --upgrade pip
 	sudo -H pip3 install --ignore-installed PyYAML
-	sudo -H pip3 install sentry-sdk==0.16.0
 	apt-get remove screen -y
 	apt-get install screen -y
 
@@ -162,22 +162,10 @@ install_by_docker(){
 
 }
 
-echo "------PagerMaid Auto Install------"
-echo "1. 通过源代码安装 PagerMaid"
-echo "2. 通过 Docker 安装 PagerMaid (配置低的机器不推荐)"
-echo "3. 修复 PagerMaid (通过源代码安装)"
-echo "4. 结束"
-echo "----------------------------------"
-echo 
-read startr
-case $startr in
-  1)
-  install_by_source
-  ;;
-  2)
-  install_by_docker
-  ;;
-  3)
+fix_by_source(){
+	if [ ! -d "/var/lib/PagerMaid-Modify" ]; then
+		echo "¿都没安装修复什么?" && exit 1
+	fi
 	if [ ! -f "/etc/systemd/system/pagermaid.service" ]; then
 		systemctl stop pagermaid
 		rm -rf /etc/systemd/system/pagermaid.service
@@ -197,7 +185,7 @@ case $startr in
 		systemctl enable pagermaid
 	fi
 	
-	read -p "问题是否解决？(y或n)" se1
+	read -p "问题是否解决？(y或n):" se1
 	
 	if [ "$se1" == "y" ]; then
 		exit
@@ -213,7 +201,7 @@ case $startr in
 		exit
 	fi
 	
-	read -p "问题是否解决？(y或n)" se2
+	read -p "问题是否解决？(y或n):" se2
 	if [ "$se2" == "y" ]; then
 		exit
 	elif [ "$se2" == "n" ];then
@@ -222,17 +210,18 @@ case $startr in
 		pip3 install zbar
 		pip3 install --upgrade pip
 		sudo -H pip3 install --ignore-installed PyYAML
-		sudo -H pip3 install sentry-sdk==0.16.0
 	else
 		echo "¿"
 		exit
 	fi
 	
-	read -p "问题是否解决？(y或n)" se3
+	read -p "问题是否解决？(y或n):" se3
 	if [ "$se3" == "y" ]; then
 		exit
 	elif [ "$se3" == "n" ];then
 		echo "正在尝试重新安装 PagerMaid"
+		echo "如果您要取消重装，请在 3秒 内按下 Ctrl + C"
+		sleep 3
 		mv -r /var/lib/PagerMaid-Modify/plugins /root
 		systemctl stop pagermaid
 		rm -rf /etc/systemd/system/pagermaid.service
@@ -240,13 +229,14 @@ case $startr in
 		rm -rf /var/lib/PagerMaid-Modify
 		install_by_source
 		mv -r /root/plugins /var/lib/PagerMaid-Modify
+		rm -rf /root/plugins
 		systemctl restart pagermaid
 	else
 		echo "¿"
 		exit
 	fi
 	
-	read -p "问题是否解决？(y或n)" se4
+	read -p "问题是否解决？(y或n):" se4
 	if [ "$se4" == "y" ]; then
 		exit
 	elif [ "$se4" == "n" ];then
@@ -255,12 +245,79 @@ case $startr in
 		echo "¿"
 		exit
 	fi
-	
-  ;;
-  4)
-  exit
-  ;;
-  *)
-  exit
-  ;;
+}
+
+fix_by_docker(){
+	if command -v docker; then
+		echo "Docker 存在..."
+	else
+		echo "Docker 都没了...重新安装吧..." && exit 1
+	fi
+	if [ ! -w /var/run/docker.sock ]; then
+			systemctl enable docker
+			systemctl start docker
+	fi
+
+	read -p "问题是否解决？(y或n):" se1
+	if [ "$se1" == "y" ]; then
+		exit
+	elif [ "$se1" == "n" ];then
+		apttt
+	else
+		echo "¿"
+		exit
+	fi
+	read -p "问题是否解决？(y或n):" se2
+	if [ "$se2" == "y" ]; then
+		exit
+	elif [ "$se2" == "n" ];then
+		echo "正在尝试重新安装 PagerMaid"
+		docker rm -f "pagermaid" > /dev/null 2>&1
+   		docker pull mrwangzhe/pagermaid_modify
+		echo "正在启动 Docker 容器 . . ."
+		echo "在登录后，请按 Ctrl + C 使容器在后台模式下重新启动。"
+		docker run -it --restart=always --name="pagermaid" --hostname="pagermaid" mrwangzhe/pagermaid_modify <&1
+	else
+		echo "¿"
+		exit
+	fi
+	read -p "问题是否解决？(y或n):" se3
+	if [ "$se3" == "y" ]; then
+		exit
+	elif [ "$se3" == "n" ];then
+		echo "换台机器吧... 我实在想不出怎么修复了..."
+	else
+		echo "¿"
+		exit
+	fi
+}
+
+echo "------PagerMaid Auto Install------"
+echo "1. 通过源代码安装 PagerMaid"
+echo "2. 通过 Docker 安装 PagerMaid (配置低的机器不推荐)"
+echo "3. 修复 PagerMaid (通过源代码安装)"
+echo "4. 修复 PagerMaid (通过 Docker 安装)"
+echo "5. 结束"
+echo "----------------------------------"
+echo 
+read startr
+case $startr in
+	1)
+		install_by_source
+	;;
+	2)
+		install_by_docker
+	;;
+	3)
+		fix_by_source
+	;;
+	4)
+		fix_by_docker
+	;;
+	5)
+	exit
+	;;
+	*)
+	exit
+	;;
 esac
