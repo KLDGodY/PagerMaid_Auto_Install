@@ -2,8 +2,10 @@
 
 clear
 
+# 验证码失败次数
 ftime = 0
 
+# 系统判断
 if [[ -f /etc/redhat-release ]]; then
   echo "淦 暂时不支持 CentOS 系统（" && exit 1
 elif cat /etc/issue | grep -q -E -i "debian"; then
@@ -22,6 +24,7 @@ elif cat /etc/issue | grep -q -E -i "Ubuntu 12"; then
   echo "淦 暂时不支持 Ubuntu 12（" && exit 1
 fi
 
+# Root
 [[ $(id -u) != 0 ]] && echo -e "哎呀......请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}\n" && exit 1
 
 apttt(){
@@ -37,22 +40,30 @@ apttt(){
 	apt install git -y
 
 	apt install tesseract-ocr -y
+	apt-get install redis-server -y
 }
 
 logint(){
+
+	#失败次数
 	if [ "$ftime" == "03" ]; then
 		echo "失败次数过多！" && exit
 	fi
 
-
+	#普通进入登录（通过源代码安装时）
 	if [ "$1" != "cnum" ] && [ "$1" != "fix" ]; then
 	
 	read -p "请输入您的 Telegram 手机号码: " phonenum
 
+	if [ "$phonenum" == "" ]; then
+		echo "¿连手机号都不知道¿" && logint
+	fi
+
 	screen -x -S userbot -p 0 -X stuff "$phonenum"
 	screen -x -S userbot -p 0 -X stuff $'\n'
 
-	if [ "$(ps aux|grep [p]agermaid)" == "" ];then
+	# 没带区号
+	if [ "$(ps aux|grep [p]agermaid)" == "" ]; then
 		echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
 		logint phonenumwrong
 	fi
@@ -68,9 +79,14 @@ logint(){
 	
 	read -p "请输入您的 Telegram 手机号码: " phonenum
 
+	if [ "$phonenum" == "" ]; then
+		echo "¿连手机号都不知道¿" && logint
+	fi
+
 	screen -x -S userbot -p 0 -X stuff "$phonenum"
 	screen -x -S userbot -p 0 -X stuff $'\n'
-	
+
+	#没带区号
 	if [ "$(ps aux|grep [p]agermaid)" == "" ];then
 		echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
 		logint phonenumwrong
@@ -83,9 +99,14 @@ logint(){
 
 		read -p "请输入您的 Telegram 手机号码: " phonenum
 
+		if [ "$phonenum" == "" ]; then
+			echo "¿连手机号都不知道¿" && logint
+		fi
+
 		screen -x -S userbot -p 0 -X stuff "$phonenum"
 		screen -x -S userbot -p 0 -X stuff $'\n'
 	
+		# 没带区号
 		if [ "$(ps aux|grep [p]agermaid)" == "" ];then
 			echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
 			logint phonenumwrong
@@ -97,6 +118,7 @@ logint(){
 	screen -x -S userbot -p 0 -X stuff "$checknum"
 	screen -x -S userbot -p 0 -X stuff $'\n'
 	
+	# 如果没有二次验证码，pagermaid.session-journal 不存在，是因为登录验证码错误 如果有那就输入
 	if [ ! -f "/var/lib/PagerMaid-Modify/pagermaid.session-journal" ]; then
 		read -p "您是否有二次登录验证码(y或n & 不知道二次登录验证码是什么请回车): " choi
 
@@ -105,7 +127,7 @@ logint(){
 			screen -x -S userbot -p 0 -X stuff "$twotimepwd"
 			screen -x -S userbot -p 0 -X stuff $'\n'
 		elif [ "$choi" == "n" ] || [ "$choi" == "" ]; then
-			echo "验证码输入错误！"
+			echo "登录验证码错误！"
 			sleep 3
 			ftime+=1
 			logint cnum
@@ -114,6 +136,7 @@ logint(){
 }
 
 install_by_source(){
+	# 目录检测 防止 clone 错误
 	if [ -d "/var/lib/PagerMaid-Modify" ]; then
 		echo "目录存在,是否删除目录?(/var/lib/PagerMaid-Modify) (y或n):"
 		read coidel
@@ -123,8 +146,11 @@ install_by_source(){
 			exit 1
 		fi
 	fi
+
 	apttt
-	if command -v python3.6;then
+	
+	# 检测 Python 3.6 (其实没什么用 Ubuntu 18.04 自带)
+	if command -v python3.6; then
 		echo 'Python 3.6 存在...'
 	else
 		wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
@@ -140,12 +166,13 @@ install_by_source(){
 		rm -rf Python-3.6.5.tar
 		
 	fi
-	if command -v pip3;
-	then
-	echo 'pip3 存在...'
+
+	if command -v pip3; then
+		echo 'pip3 存在...'
 	else
 		apt-get install python3-pip -y
 	fi
+
 	pip3 install email_validator
 	pip3 install zbar
 	pip3 install --upgrade pip
@@ -172,6 +199,9 @@ install_by_source(){
 	sed -i "s/ID_HERE/$api_key/g" /var/lib/PagerMaid-Modify/config.yml
 	read -p "请输入您的 API_HASH: " api_hash
 	sed -i "s/HASH_HERE/$api_hash/g" /var/lib/PagerMaid-Modify/config.yml
+
+	random_STring=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+	sed -i "s/RANDOM_STRING_HERE/$random_STring/g" /var/lib/PagerMaid-Modify/config.yml
 	screen -dmS userbot
 
 	screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
@@ -182,6 +212,7 @@ install_by_source(){
 
 	logint
 
+	# 删除 screen & 守护进程
 	apt remove screen -y
 	cd /etc/systemd/system/
 	wget https://pastebin.com/raw/jcWjFDT6
@@ -195,6 +226,8 @@ install_by_source(){
 
 install_by_docker(){
 	apttt
+
+	# 检测 docker 因为 root 不可能不能访问（吧）
 	if [ -w /var/run/docker.sock ]
 	  then
 		echo "Docker 存在...."
@@ -211,9 +244,13 @@ install_by_docker(){
 }
 
 fix_by_source(){
-	if [ ! -d "/var/lib/PagerMaid-Modify" ]; then
+
+	# 检测目录
+	if [ ! -d "/var/lib/PagerMaid-Modify" ] || [ ! -f "/var/lib/PagerMaid-Modify/config.yml" ]; then
 		echo "¿都没安装修复什么?" && exit 1
 	fi
+
+	# 守护进程
 	if [ ! -f "/etc/systemd/system/pagermaid.service" ]; then
 		systemctl stop pagermaid
 		rm -rf /etc/systemd/system/pagermaid.service
@@ -235,6 +272,7 @@ fix_by_source(){
 	
 	read -p "问题是否解决？(y或n):" se1
 	
+	# 账号失效
 	if [ "$se1" == "y" ]; then
 		exit
 	elif [ "$se1" == "n" ];then
@@ -250,6 +288,8 @@ fix_by_source(){
 	fi
 	
 	read -p "问题是否解决？(y或n):" se2
+
+	#依赖
 	if [ "$se2" == "y" ]; then
 		exit
 	elif [ "$se2" == "n" ];then
@@ -264,6 +304,8 @@ fix_by_source(){
 	fi
 	
 	read -p "问题是否解决？(y或n):" se3
+
+	#重装
 	if [ "$se3" == "y" ]; then
 		exit
 	elif [ "$se3" == "n" ];then
@@ -301,6 +343,11 @@ fix_by_docker(){
 	else
 		echo "Docker 都没了...重新安装吧..." && exit 1
 	fi
+
+	if [[ "$(docker images -q pagermaid:latest 2> /dev/null)" == "" ]]; then
+		echo "镜像没了？重装吧"
+	fi
+
 	if [ ! -w /var/run/docker.sock ]; then
 			systemctl enable docker
 			systemctl start docker
