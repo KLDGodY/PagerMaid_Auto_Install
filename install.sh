@@ -1,6 +1,9 @@
 #!/bin/bash
 
 clear
+
+ftime = 0
+
 if [[ -f /etc/redhat-release ]]; then
   echo "淦 暂时不支持 CentOS 系统（" && exit 1
 elif cat /etc/issue | grep -q -E -i "debian"; then
@@ -11,7 +14,14 @@ elif cat /proc/version | grep -q -E -i "debian"; then
   echo "淦 暂时不支持 Debian 系统（" && exit 1
 elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
   echo "淦 暂时不支持 CentOS 系统（" && exit 1
+elif cat /etc/issue | grep -q -E -i "Ubuntu 16"; then
+  echo "淦 暂时不支持 Ubuntu 16（" && exit 1
+elif cat /etc/issue | grep -q -E -i "Ubuntu 14"; then
+  echo "淦 暂时不支持 Ubuntu 14（" && exit 1
+elif cat /etc/issue | grep -q -E -i "Ubuntu 12"; then
+  echo "淦 暂时不支持 Ubuntu 12（" && exit 1
 fi
+
 [[ $(id -u) != 0 ]] && echo -e "哎呀......请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}\n" && exit 1
 
 apttt(){
@@ -30,13 +40,22 @@ apttt(){
 }
 
 logint(){
-	
+	if [ "$ftime" == "03" ]; then
+		echo "失败次数过多！" && exit
+	fi
+
+
 	if [ "$1" != "cnum" ] && [ "$1" != "fix" ]; then
 	
 	read -p "请输入您的 Telegram 手机号码: " phonenum
 
 	screen -x -S userbot -p 0 -X stuff "$phonenum"
 	screen -x -S userbot -p 0 -X stuff $'\n'
+
+	if [ "$(ps aux|grep [p]agermaid)" == "" ];then
+		echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
+		logint phonenumwrong
+	fi
 	
 	elif [ "$1" == "fix" ]; then
 	
@@ -52,6 +71,25 @@ logint(){
 	screen -x -S userbot -p 0 -X stuff "$phonenum"
 	screen -x -S userbot -p 0 -X stuff $'\n'
 	
+	if [ "$(ps aux|grep [p]agermaid)" == "" ];then
+		echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
+		logint phonenumwrong
+	fi
+
+	elif [ "$1" == "phonenumwrong" ]; then
+		screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
+
+		screen -x -S userbot -p 0 -X stuff $'\n'
+
+		read -p "请输入您的 Telegram 手机号码: " phonenum
+
+		screen -x -S userbot -p 0 -X stuff "$phonenum"
+		screen -x -S userbot -p 0 -X stuff $'\n'
+	
+		if [ "$(ps aux|grep [p]agermaid)" == "" ];then
+			echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
+			logint phonenumwrong
+		fi
 	fi
 	
 	read -p "请输入您的登录验证码: " checknum
@@ -69,6 +107,7 @@ logint(){
 		elif [ "$choi" == "n" ] || [ "$choi" == "" ]; then
 			echo "验证码输入错误！"
 			sleep 3
+			ftime+=1
 			logint cnum
 		fi
 	fi
