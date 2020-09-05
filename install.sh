@@ -114,6 +114,15 @@ logint(){
 }
 
 install_by_source(){
+	if [ -d "/var/lib/PagerMaid-Modify" ]; then
+		echo "目录存在,是否删除目录?(/var/lib/PagerMaid-Modify) (y或n):"
+		read coidel
+		if [ "$coidel" == "y" ]; then
+			rm -rf /var/lib/PagerMaid-Modify
+		else
+			exit 1
+		fi
+	fi
 	apttt
 	if command -v python3.6;then
 		echo 'Python 3.6 存在...'
