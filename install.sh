@@ -30,134 +30,241 @@ fi
 [[ $(id -u) != 0 ]] && echo -e "哎呀......请使用 ${red}root ${none}用户运行 ${yellow}~(^_^) ${none}\n" && exit 1
 
 apttt(){
-	apt-get update -y
-	apt-get upgrade -y
-	apt-get install sudo -y
-	apt-get install imagemagick -y
-	apt-get install software-properties-common -y
-	add-apt-repository ppa:dawidd0811/neofetch -y
-	apt-get install neofetch -y
-	apt install tesseract-ocr-all -y
-	apt-get install libzbar-dev -y
-	apt install git -y
+	if [ "$1" == "docker" ]; then
+		apt-get update -y
+		apt-get upgrade -y
+		apt-get install sudo -y
+		apt-get install imagemagick -y
+		apt-get install software-properties-common -y
+		add-apt-repository ppa:dawidd0811/neofetch -y
+		apt-get install neofetch -y
+		apt install tesseract-ocr-all -y
+		apt-get install libzbar-dev -y
 
-	apt install tesseract-ocr -y
-	apt-get install redis-server -y
+		apt install tesseract-ocr -y
+		if command -v python3.6; then
+			echo 'Python 3.6 存在...'
+		else
+			wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
+			tar xvzf Python-3.6.5.tgz
+			gzip -dv Python-3.6.5.tgz
+			tar xvf Python-3.6.5.tar
+			cd Python-3.6.5
+			./configure --enable-optimizations
+			make && make altinstall
+			python3 -V
+			cd ../
+			rm -rf Python-3.6.5.tgz
+			rm -rf Python-3.6.5.tar
+			
+		fi
 
-	# 检测 Python 3.6 (其实没什么用 Ubuntu 18.04 自带)
-	if command -v python3.6; then
-		echo 'Python 3.6 存在...'
-	else
-		wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
-		tar xvzf Python-3.6.5.tgz
-		gzip -dv Python-3.6.5.tgz
-		tar xvf Python-3.6.5.tar
-		cd Python-3.6.5
-		./configure --enable-optimizations
-		make && make altinstall
-		python3 -V
-		cd ../
-		rm -rf Python-3.6.5.tgz
-		rm -rf Python-3.6.5.tar
+		if command -v pip3; then
+			echo 'pip3 存在...'
+		else
+			apt-get install python3-pip -y
+		fi
+
+		pip3 install --upgrade pip
+		sudo -H pip3 install --ignore-installed PyYAML
 		
-	fi
-
-	if command -v pip3; then
-		echo 'pip3 存在...'
 	else
-		apt-get install python3-pip -y
-	fi
+		apt-get update -y
+		apt-get upgrade -y
+		apt-get install sudo -y
+		apt-get install imagemagick -y
+		apt-get install software-properties-common -y
+		add-apt-repository ppa:dawidd0811/neofetch -y
+		apt-get install neofetch -y
+		apt install tesseract-ocr-all -y
+		apt-get install libzbar-dev -y
+		apt install git -y
 
-	pip3 install --upgrade pip
-	sudo -H pip3 install --ignore-installed PyYAML
-	apt-get remove screen -y
-	apt-get install screen -y
+		apt install tesseract-ocr -y
+		apt-get install redis-server -y
+		# 检测 Python 3.6 (其实没什么用 Ubuntu 18.04 自带)
+		if command -v python3.6; then
+			echo 'Python 3.6 存在...'
+		else
+			wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
+			tar xvzf Python-3.6.5.tgz
+			gzip -dv Python-3.6.5.tgz
+			tar xvf Python-3.6.5.tar
+			cd Python-3.6.5
+			./configure --enable-optimizations
+			make && make altinstall
+			python3 -V
+			cd ../
+			rm -rf Python-3.6.5.tgz
+			rm -rf Python-3.6.5.tar
+			
+		fi
 
-	if command -v git;then
-		echo 'Git 存在...'
-	else
-		apt-get install git -y
+		if command -v pip3; then
+			echo 'pip3 存在...'
+		else
+			apt-get install python3-pip -y
+		fi
+
+		pip3 install --upgrade pip
+		sudo -H pip3 install --ignore-installed PyYAML
+		apt-get remove screen -y
+		apt-get install screen -y
+
+		if command -v git;then
+			echo 'Git 存在...'
+		else
+			apt-get install git -y
+		fi
 	fi
 }
 
 yumupdate(){
-	yum update -y
-	yum upgrade -y
-	if command -v git; then
-		echo "Git 存在..."
-	else
-		yum install git -y
-	fi
-	
-	if command -v python3; then
-		U_V1=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $1}'`
-        U_V2=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $2}'`
-        if [ $U_V1 -gt 3 ]; then
-	    	echo 'Python 3.6+ 存在 . . .'
-	    elif [ $U_V2 -ge 6 ]; then
-	    	echo 'Python 3.6+ 存在 . . .'
-	    else
-	    	if command -v python3.6; then
-	    		echo 'Python 3.6+ 存在 . . .'
-	    	else
-	    	    yum install python3 -y
-	    	    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 >> /dev/null 2>&1
-	    	fi
-	    fi
-	else
-		yum install python3 -y
-		update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
-	fi
-	
-	if command -v pip3; then
-		echo 'pip 存在 . . .'
-	else
-		yum install -y python3-pip
-	fi
+	if [ "$1" == "docker" ]; then
+		yum update -y
+		yum upgrade -y
+		
+		if command -v python3; then
+			U_V1=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $1}'`
+	        U_V2=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $2}'`
+	        if [ $U_V1 -gt 3 ]; then
+		    	echo 'Python 3.6+ 存在 . . .'
+		    elif [ $U_V2 -ge 6 ]; then
+		    	echo 'Python 3.6+ 存在 . . .'
+		    else
+		    	if command -v python3.6; then
+		    		echo 'Python 3.6+ 存在 . . .'
+		    	else
+		    	    yum install python3 -y
+		    	    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 >> /dev/null 2>&1
+		    	fi
+		    fi
+		else
+			yum install python3 -y
+			update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+		fi
+		
+		if command -v pip3; then
+			echo 'pip 存在 . . .'
+		else
+			yum install -y python3-pip
+		fi
 
-	if command -v convert; then
-		echo "ImageMagick 存在..."
+		if command -v convert; then
+			echo "ImageMagick 存在..."
+		else
+			yum groupinstall " Development Tools"  -y
+			yum install php-pear php-devel gcc -y
+			yum install ImageMagick ImageMagick-devel ImageMagick-perl -y
+		fi
+		
+		yum install -y epel-release
+		yum install neofetch -y
+		
+		if command -v tesseract; then
+			echo "tesseract-ocr 存在..."
+		else
+			yum install automake -y
+			yum install libtool -y
+			wget http://www.leptonica.org/source/leptonica-1.74.4.tar.gz
+			tar -xvf leptonica-1.74.4.tar.gz
+			cd leptonica-1.74.4
+			./configure && make && make install
+			wget https://codeload.github.com/tesseract-ocr/tesseract/tar.gz/4.1.0
+			tar -xvf 4.1.0
+			cd tesseract-4.1.0/
+			./autogen.sh
+			export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/
+			./configure
+			make && make install
+			sudo ldconfig
+			cd ../
+			cd ../
+			rm -rf leptonica-1.74.4
+			rm -rf leptonica-1.74.4.tar.gz
+		fi
+		
+		yum install python3-devel -y
+		yum install zbar-devel -y
 	else
-		yum groupinstall " Development Tools"  -y
-		yum install php-pear php-devel gcc -y
-		yum install ImageMagick ImageMagick-devel ImageMagick-perl -y
+		yum update -y
+		yum upgrade -y
+		if command -v git; then
+			echo "Git 存在..."
+		else
+			yum install git -y
+		fi
+		
+		if command -v python3; then
+			U_V1=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $1}'`
+	        U_V2=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $2}'`
+	        if [ $U_V1 -gt 3 ]; then
+		    	echo 'Python 3.6+ 存在 . . .'
+		    elif [ $U_V2 -ge 6 ]; then
+		    	echo 'Python 3.6+ 存在 . . .'
+		    else
+		    	if command -v python3.6; then
+		    		echo 'Python 3.6+ 存在 . . .'
+		    	else
+		    	    yum install python3 -y
+		    	    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 >> /dev/null 2>&1
+		    	fi
+		    fi
+		else
+			yum install python3 -y
+			update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+		fi
+		
+		if command -v pip3; then
+			echo 'pip 存在 . . .'
+		else
+			yum install -y python3-pip
+		fi
+
+		if command -v convert; then
+			echo "ImageMagick 存在..."
+		else
+			yum groupinstall " Development Tools"  -y
+			yum install php-pear php-devel gcc -y
+			yum install ImageMagick ImageMagick-devel ImageMagick-perl -y
+		fi
+		
+		yum install -y epel-release
+		yum install neofetch -y
+		
+		if command -v tesseract; then
+			echo "tesseract-ocr 存在..."
+		else
+			yum install automake -y
+			yum install libtool -y
+			wget http://www.leptonica.org/source/leptonica-1.74.4.tar.gz
+			tar -xvf leptonica-1.74.4.tar.gz
+			cd leptonica-1.74.4
+			./configure && make && make install
+			wget https://codeload.github.com/tesseract-ocr/tesseract/tar.gz/4.1.0
+			tar -xvf 4.1.0
+			cd tesseract-4.1.0/
+			./autogen.sh
+			export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/
+			./configure
+			make && make install
+			sudo ldconfig
+			cd ../
+			cd ../
+			rm -rf leptonica-1.74.4
+			rm -rf leptonica-1.74.4.tar.gz
+		fi
+		
+		yum install python3-devel -y
+		yum install zbar-devel -y
+		yum install zbar -y
+		pip3 install pyzbar --user
+		
+		yum -y install redis
+		systemctl start redis
+		yum remove screen -y
+		yum install screen -y
 	fi
-	
-	yum install -y epel-release
-	yum install neofetch -y
-	
-	if command -v tesseract; then
-		echo "tesseract-ocr 存在..."
-	else
-		yum install automake -y
-		yum install libtool -y
-		wget http://www.leptonica.org/source/leptonica-1.74.4.tar.gz
-		tar -xvf leptonica-1.74.4.tar.gz
-		cd leptonica-1.74.4
-		./configure && make && make install
-		wget https://codeload.github.com/tesseract-ocr/tesseract/tar.gz/4.1.0
-		tar -xvf 4.1.0
-		cd tesseract-4.1.0/
-		./autogen.sh
-		export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/
-		./configure
-		make && make install
-		sudo ldconfig
-		cd ../
-		cd ../
-		rm -rf leptonica-1.74.4
-		rm -rf leptonica-1.74.4.tar.gz
-	fi
-	
-	yum install python3-devel -y
-	yum install zbar-devel -y
-	yum install zbar -y
-	pip3 install pyzbar --user
-	
-	yum -y install redis
-	systemctl start redis
-	yum remove screen -y
-	yum install screen -y
 }
 
 logint(){
@@ -324,7 +431,11 @@ install_by_source(){
 }
 
 install_by_docker(){
-	apttt
+	if [ "$centos" == "1" ]; then
+		yumupdate docker
+	elif [ "$ubuntu18" == "1" ]; then
+		apttt docker
+	fi
 
 	# 检测 docker 因为 root 不可能不能访问（吧）
 	if [ -w /var/run/docker.sock ]
@@ -399,7 +510,11 @@ fix_by_source(){
 	if [ "$se2" == "y" ]; then
 		exit
 	elif [ "$se2" == "n" ];then
-		apttt
+		if [ "$centos" == "1" ]; then
+			yumupdate docker
+		elif [ "$ubuntu18" == "1" ]; then
+			apttt docker
+		fi
 		pip3 install email_validator
 		pip3 install zbar
 		pip3 install --upgrade pip
@@ -463,7 +578,11 @@ fix_by_docker(){
 	if [ "$se1" == "y" ]; then
 		exit
 	elif [ "$se1" == "n" ];then
-		apttt
+		if [ "$centos" == "1" ]; then
+			yumupdate docker
+		elif [ "$ubuntu18" == "1" ]; then
+			apttt docker
+		fi
 	else
 		echo "¿"
 		exit
