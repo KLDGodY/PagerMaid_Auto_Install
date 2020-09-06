@@ -3,19 +3,21 @@
 clear
 
 # 验证码失败次数
-ftime = 0
+ftime=0
 
 # 系统判断
 if [[ -f /etc/redhat-release ]]; then
-  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+  centos=1
 elif cat /etc/issue | grep -q -E -i "debian"; then
-  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+  echo "淦 暂时不支持 Debian 系统（" && exit 1
 elif cat /etc/issue | grep -q -E -i "centos|red hat|redhat"; then
-  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+  centos=1
 elif cat /proc/version | grep -q -E -i "debian"; then
   echo "淦 暂时不支持 Debian 系统（" && exit 1
 elif cat /proc/version | grep -q -E -i "centos|red hat|redhat"; then
-  echo "淦 暂时不支持 CentOS 系统（" && exit 1
+  centos=1
+elif cat /etc/issue | grep -q -E -i "Ubuntu 18"; then
+  ubuntu18=1
 elif cat /etc/issue | grep -q -E -i "Ubuntu 16"; then
   echo "淦 暂时不支持 Ubuntu 16（" && exit 1
 elif cat /etc/issue | grep -q -E -i "Ubuntu 14"; then
@@ -41,6 +43,121 @@ apttt(){
 
 	apt install tesseract-ocr -y
 	apt-get install redis-server -y
+
+	# 检测 Python 3.6 (其实没什么用 Ubuntu 18.04 自带)
+	if command -v python3.6; then
+		echo 'Python 3.6 存在...'
+	else
+		wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
+		tar xvzf Python-3.6.5.tgz
+		gzip -dv Python-3.6.5.tgz
+		tar xvf Python-3.6.5.tar
+		cd Python-3.6.5
+		./configure --enable-optimizations
+		make && make altinstall
+		python3 -V
+		cd ../
+		rm -rf Python-3.6.5.tgz
+		rm -rf Python-3.6.5.tar
+		
+	fi
+
+	if command -v pip3; then
+		echo 'pip3 存在...'
+	else
+		apt-get install python3-pip -y
+	fi
+
+	pip3 install --upgrade pip
+	sudo -H pip3 install --ignore-installed PyYAML
+	apt-get remove screen -y
+	apt-get install screen -y
+
+	if command -v git;then
+		echo 'Git 存在...'
+	else
+		apt-get install git -y
+	fi
+}
+
+yumupdate(){
+	yum update -y
+	yum upgrade -y
+	if command -v git; then
+		echo "Git 存在..."
+	else
+		yum install git -y
+	fi
+	
+	if command -v python3; then
+		U_V1=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $1}'`
+        U_V2=`python3 -V 2>&1|awk '{print $2}'|awk -F '.' '{print $2}'`
+        if [ $U_V1 -gt 3 ]; then
+	    	echo 'Python 3.6+ 存在 . . .'
+	    elif [ $U_V2 -ge 6 ]; then
+	    	echo 'Python 3.6+ 存在 . . .'
+	    else
+	    	if command -v python3.6; then
+	    		echo 'Python 3.6+ 存在 . . .'
+	    	else
+	    	    yum install python3 -y
+	    	    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 >> /dev/null 2>&1
+	    	fi
+	    fi
+	else
+		yum install python3 -y
+		update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1
+	fi
+	
+	if command -v pip3; then
+		echo 'pip 存在 . . .'
+	else
+		yum install -y python3-pip
+	fi
+
+	if command -v convert; then
+		echo "ImageMagick 存在..."
+	else
+		yum groupinstall " Development Tools"  -y
+		yum install php-pear php-devel gcc -y
+		yum install ImageMagick ImageMagick-devel ImageMagick-perl -y
+	fi
+	
+	yum install -y epel-release
+	yum install neofetch -y
+	
+	if command -v tesseract; then
+		echo "tesseract-ocr 存在..."
+	else
+		yum install automake -y
+		yum install libtool -y
+		wget http://www.leptonica.org/source/leptonica-1.74.4.tar.gz
+		tar -xvf leptonica-1.74.4.tar.gz
+		cd leptonica-1.74.4
+		./configure && make && make install
+		wget https://codeload.github.com/tesseract-ocr/tesseract/tar.gz/4.1.0
+		tar -xvf 4.1.0
+		cd tesseract-4.1.0/
+		./autogen.sh
+		export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/
+		./configure
+		make && make install
+		sudo ldconfig
+		cd ../
+		cd ../
+		rm -rf leptonica-1.74.4
+		rm -rf leptonica-1.74.4.tar.gz
+	fi
+	
+	yum install python3-devel -y
+	yum install zbar-devel -y
+	yum install zbar -y
+	pip3 install pyzbar --user
+	
+	yum -y install redis
+	systemctl start redis
+	yum remove screen -y
+	yum install screen -y
 }
 
 logint(){
@@ -53,46 +170,52 @@ logint(){
 	#普通进入登录（通过源代码安装时）
 	if [ "$1" != "cnum" ] && [ "$1" != "fix" ]; then
 	
-	read -p "请输入您的 Telegram 手机号码: " phonenum
+		read -p "请输入您的 Telegram 手机号码: " phonenum
 
-	if [ "$phonenum" == "" ]; then
-		echo "¿连手机号都不知道¿" && logint
-	fi
+		if [ "$phonenum" == "" ]; then
+			echo "¿连手机号都不知道¿" && logint
+		fi
 
-	screen -x -S userbot -p 0 -X stuff "$phonenum"
-	screen -x -S userbot -p 0 -X stuff $'\n'
+		screen -x -S userbot -p 0 -X stuff "$phonenum"
+		screen -x -S userbot -p 0 -X stuff $'\n'
 
-	# 没带区号
-	if [ "$(ps aux|grep [p]agermaid)" == "" ]; then
-		echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
-		logint phonenumwrong
-	fi
+		# 没带区号
+		if [ "$(ps aux|grep [p]agermaid)" == "" ]; then
+			echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
+			logint phonenumwrong
+		fi
 	
 	elif [ "$1" == "fix" ]; then
 	
-	apt-get install screen -y 
-	screen -dmS userbot
+		if [ "$centos" == "1" ]; then
+			yum install screen -y
+		else
+			apt-get install screen -y 
+		fi
+		screen -S userbot -X quit
+		screen -dmS userbot
 
-	screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
+		screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
 
-	screen -x -S userbot -p 0 -X stuff $'\n'
-	
-	read -p "请输入您的 Telegram 手机号码: " phonenum
+		screen -x -S userbot -p 0 -X stuff $'\n'
+		
+		read -p "请输入您的 Telegram 手机号码: " phonenum
 
-	if [ "$phonenum" == "" ]; then
-		echo "¿连手机号都不知道¿" && logint
-	fi
+		if [ "$phonenum" == "" ]; then
+			echo "¿连手机号都不知道¿" && logint
+		fi
 
-	screen -x -S userbot -p 0 -X stuff "$phonenum"
-	screen -x -S userbot -p 0 -X stuff $'\n'
+		screen -x -S userbot -p 0 -X stuff "$phonenum"
+		screen -x -S userbot -p 0 -X stuff $'\n'
 
-	#没带区号
-	if [ "$(ps aux|grep [p]agermaid)" == "" ];then
-		echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
-		logint phonenumwrong
-	fi
+		#没带区号
+		if [ "$(ps aux|grep [p]agermaid)" == "" ];then
+			echo "手机号输入错误！请确认您是否带了区号（中国号码为 +86 如 +8613301237756）" 
+			logint phonenumwrong
+		fi
 
 	elif [ "$1" == "phonenumwrong" ]; then
+	
 		screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
 
 		screen -x -S userbot -p 0 -X stuff $'\n'
@@ -147,41 +270,11 @@ install_by_source(){
 		fi
 	fi
 
-	apttt
+	if [ "$1" == "ubuntu18" ]; then
+		apttt
 	
-	# 检测 Python 3.6 (其实没什么用 Ubuntu 18.04 自带)
-	if command -v python3.6; then
-		echo 'Python 3.6 存在...'
-	else
-		wget https://www.python.org/ftp/python/3.6.5/Python-3.6.5.tgz
-		tar xvzf Python-3.6.5.tgz
-		gzip -dv Python-3.6.5.tgz
-		tar xvf Python-3.6.5.tar
-		cd Python-3.6.5
-		./configure --enable-optimizations
-		make && make altinstall
-		python3 -V
-		cd ../
-		rm -rf Python-3.6.5.tgz
-		rm -rf Python-3.6.5.tar
-		
-	fi
-
-	if command -v pip3; then
-		echo 'pip3 存在...'
-	else
-		apt-get install python3-pip -y
-	fi
-
-	pip3 install --upgrade pip
-	sudo -H pip3 install --ignore-installed PyYAML
-	apt-get remove screen -y
-	apt-get install screen -y
-
-	if command -v git;then
-		echo 'Git 存在...'
-	else
-		apt-get install git -y
+	elif [ "$1" == "centos" ]; then
+		yumupdate
 	fi
 
 	cd /var/lib
@@ -200,6 +293,8 @@ install_by_source(){
 
 	random_STring=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
 	sed -i "s/RANDOM_STRING_HERE/$random_STring/g" /var/lib/PagerMaid-Modify/config.yml
+
+	screen -S userbot -X quit
 	screen -dmS userbot
 
 	screen -x -S userbot -p 0 -X stuff "cd /var/lib/PagerMaid-Modify && python3.6 -m pagermaid"
@@ -211,7 +306,12 @@ install_by_source(){
 	logint
 
 	# 删除 screen & 守护进程
-	apt remove screen -y
+	if [ "$1" == "ubuntu18" ]; then
+		apt remove screen -y
+	
+	elif [ "$1" == "centos" ]; then
+		yum remove screen -y
+	fi
 	cd /etc/systemd/system/
 	wget https://pastebin.com/raw/jcWjFDT6
 	mv ./jcWjFDT6 ./pagermaid.service
@@ -219,6 +319,7 @@ install_by_source(){
 	systemctl start pagermaid
 	systemctl enable pagermaid
 
+	screen -S userbot -X quit
 	echo "PagerMaid 已经安装完毕 在 Telegram 对话框中输入 -help 并发送查看帮助列表"
 }
 
@@ -272,16 +373,23 @@ fix_by_source(){
 	
 	# 账号失效
 	if [ "$se1" == "y" ]; then
-		exit
+		screen -S userbot -X quit && exit
 	elif [ "$se1" == "n" ];then
 		rm -rf /var/lib/PagerMaid-Modify/pagermaid.session
 		rm -rf /var/lib/PagerMaid-Modify/pagermaid.session-journal
 		systemctl stop pagermaid
+		screen -S userbot -X quit
 		logint fix
-		apt-get remove screen -y
+		if [ "$centos" == "1" ]; then
+			screen -S userbot -X quit
+			yum remove screen -y
+		else
+			apt-get remove screen -y
+		fi
 		systemctl start pagermaid
 	else
 		echo "¿"
+		screen -S userbot -X quit
 		exit
 	fi
 	
@@ -396,7 +504,11 @@ echo
 read startr
 case $startr in
 	1)
-		install_by_source
+		if [ "$centos" == "1" ]; then
+			install_by_source centos
+		elif [ "$ubuntu18" == "1" ]; then
+			install_by_source ubuntu18
+		fi
 	;;
 	2)
 		install_by_docker
