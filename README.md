@@ -7,6 +7,7 @@ PagerMaid 项目地址 [https://github.com/xtaodada/PagerMaid-Modify](https://gi
 目前脚本支持系统：  
 + Ubuntu 18.04
 + Ubuntu 20.04
++ Centos 7
 
 支持安装方法：  
 + 从源代码安装
