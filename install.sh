@@ -46,7 +46,7 @@ apttt(){
 logint(){
 
 	#失败次数
-	if [ "$ftime" == "03" ]; then
+	if [ "$ftime" == "0111" ]; then
 		echo "失败次数过多！" && exit
 	fi
 
@@ -173,8 +173,6 @@ install_by_source(){
 		apt-get install python3-pip -y
 	fi
 
-	pip3 install email_validator
-	pip3 install zbar
 	pip3 install --upgrade pip
 	sudo -H pip3 install --ignore-installed PyYAML
 	apt-get remove screen -y
